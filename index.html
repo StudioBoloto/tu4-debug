@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>TU4 Debug — машина Тьюринга в четвёрках</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main>
+      <section class="tape-section" aria-label="Лента машины Тьюринга">
+        <div class="tape-input-row">
+          <input id="tape-input" class="tape-input" autocomplete="off" spellcheck="false" value=" 1011" aria-label="Начальное слово" placeholder="Начальное слово">
+          <div class="utility-actions">
+            <span class="save-state" id="save-state">Сохранено</span>
+            <button class="quiet icon-button" id="theme" type="button" title="Сменить тему" aria-label="Сменить тему">☾</button>
+            <button class="quiet help-button" id="help" type="button">Справка</button>
+          </div>
+        </div>
+        <div class="tape-stage">
+          <div class="tape-wrap">
+            <div class="tape" id="tape" aria-label="Ячейки ленты"></div>
+          </div>
+          <div class="tape-tools" aria-label="Навигация по ленте">
+            <button class="icon-button" id="tape-left" title="Сдвинуть окно ленты влево">←</button>
+            <button class="icon-button" id="tape-center" title="Вернуться к головке">◎</button>
+            <button class="icon-button" id="tape-right" title="Сдвинуть окно ленты вправо">→</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="control-strip" aria-label="Управление выполнением">
+        <div class="control-row">
+          <button class="run" id="start" type="button"><span>▶</span> Старт</button>
+          <button id="back" type="button" disabled><span>↶</span> Назад</button>
+          <button id="step" type="button" disabled><span>↷</span> Шаг</button>
+          <button id="quick" type="button"><span>»</span> До конца</button>
+          <button id="pause" type="button" disabled>Пауза</button>
+          <div id="message" class="message" role="status">Нажмите «Старт», чтобы выполнить первый шаг</div>
+          <label class="speed-control"><span>Темп</span>
+            <select id="speed">
+              <option value="600">медленно</option>
+              <option value="120" selected>обычно</option>
+              <option value="16">быстро</option>
+              <option value="0">мгновенно</option>
+            </select>
+          </label>
+        </div>
+        <dl class="stats-row" aria-label="Статистика выполнения">
+          <div><dt>Команд</dt><dd id="stat-commands">0</dd></div>
+          <div><dt>Исходная длина</dt><dd id="stat-input">0</dd></div>
+          <div><dt>Ячеек использовано</dt><dd id="stat-cells">0</dd></div>
+          <div><dt>Операций</dt><dd id="stat-steps">0</dd></div>
+        </dl>
+      </section>
+
+      <section class="workspace">
+        <article class="panel editor-panel">
+          <div class="panel-heading">
+            <h1>Программа</h1>
+            <div class="file-actions">
+              <label class="button quiet file-label">Открыть<input id="file-open" type="file" accept=".tu4,.txt,text/plain"></label>
+              <button class="quiet" id="file-save" type="button">Скачать .tu4</button>
+            </div>
+          </div>
+          <div class="editor-shell" id="editor-shell">
+            <div class="gutter" id="gutter" aria-hidden="true"></div>
+            <div class="line-highlights" id="line-highlights" aria-hidden="true"></div>
+            <textarea id="program" class="program" wrap="off" spellcheck="false" aria-label="Программа в четверках"></textarea>
+          </div>
+          <div class="editor-footer">
+            <span id="syntax-status" class="status ok">Синтаксис в порядке</span>
+            <span>Точка слева от строки — брейкпоинт</span>
+          </div>
+        </article>
+        <div class="side-column">
+          <aside class="panel watch-panel" aria-labelledby="watch-title">
+            <div class="panel-heading compact"><h2 id="watch-title">Наблюдение</h2></div>
+            <dl class="watch-grid">
+              <div><dt>Состояние</dt><dd id="watch-state">0</dd></div>
+              <div><dt>Шаг</dt><dd id="watch-step">0</dd></div>
+              <div><dt>Головка</dt><dd id="watch-head">5</dd></div>
+              <div><dt>Символ</dt><dd id="watch-symbol">␠</dd></div>
+              <div class="wide"><dt>Следующая команда</dt><dd id="watch-command">—</dd></div>
+            </dl>
+          </aside>
+          <aside class="panel debug-panel" aria-labelledby="debug-title">
+            <div class="panel-heading compact"><h2 id="debug-title">Отладка</h2></div>
+            <div class="run-to-control">
+              <label for="run-to-state">Дойти до состояния</label>
+              <div><input id="run-to-state" autocomplete="off" spellcheck="false" placeholder="например: end"><button id="run-to" type="button">Дойти</button></div>
+            </div>
+            <p class="debug-hint">Брейкпоинт ставится кликом по точке слева от строки.</p>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="help-dialog">
+      <form method="dialog">
+        <button class="dialog-close" aria-label="Закрыть">×</button>
+        <span class="eyebrow">Справка</span>
+        <h2>Машина Тьюринга в четвёрках</h2>
+        <p><code>q,a,v,q′</code>: состояние, читаемый символ, действие и новое состояние. Пробел — обычный символ.</p>
+        <table>
+          <tr><th><code>&lt;</code></th><td>головка влево</td></tr>
+          <tr><th><code>&gt;</code></th><td>головка вправо</td></tr>
+          <tr><th><code>=</code></th><td>остаться на месте</td></tr>
+          <tr><th><code>#</code></th><td>остановка</td></tr>
+          <tr><th>любой знак</th><td>записать знак</td></tr>
+        </table>
+        <p>Комментарии начинаются с <code>//</code> или <code>#</code>. Несколько команд можно писать в одной строке. Числовые состояния <code>01</code> и <code>1</code> считаются одинаковыми.</p>
+        <p>На ленте <code>␠</code> означает пробел, а <code>▲</code> отмечает головку. Клик по ячейке переставляет головку и очищает историю шагов. В начале головка находится на первом пробеле справа от исходного слова.</p>
+        <p class="about-project">TU4 Debug v0.3.1</p>
+      </form>
+    </dialog>
+    <script src="core.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
